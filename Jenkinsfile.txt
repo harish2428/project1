@@ -5,7 +5,7 @@ pipeline {
 	}   
     environment {
 	APP_NAME = "deploy"
-        TOMCAT_HOME = "C:\Program Files\Apache Software Foundation\Tomcat 9.0"
+        TOMCAT_HOME = "C:/Program Files/Apache Software Foundation/Tomcat 9.0"
         WAR_FILE = "devOpsWeb.war"
         TOMCAT_MANAGER_USERNAME = "harish"
         TOMCAT_MANAGER_PASSWORD = "bvbschool@24"
