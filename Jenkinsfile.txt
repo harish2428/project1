@@ -1,23 +1,24 @@
-pipeline {
+pipeline{
     agent any
     tools{
-      maven 'MAVEN'
-    }
-    environment {
-        TOMCAT_URL = 'http://192.168.56.1:8081/'
-        WAR_FILE = '"C:/project1/SampleWebApp.war"'
-        TOMCAT_USER = credentials('harish')
-        TOMCAT_PASS = credentials('bvbschool@24')
-    }
-
-    stages {
-        stage('Deploy to Tomcat') {
-            steps {
-                script {
-                    def tomcat = Tomcat.tomcat(url: TOMCAT_URL, credentialsId: TOMCAT_USER)
-                    tomcat.deploy contextPath: '/', war: WAR_FILE
+	maven 'MAVEN'
+    
+    stages{
+        stage ('Build'){
+            steps{
+                sh 'mvn clean package'
+            }
+            post{
+                success{
+                     echo "Archiving the Atrifacts"
+                     archiveArtifacts artifacts: '**/target/*.war'
                 }
             }
-        }
-    }
+        }
+        stage ('Deploy to tomcat server'){
+            steps{
+              deploy adapters: [tomcat9(credentialsId: '9c79e835-1725-4469-a87f-30ad06cdbffd', path: '', url: 'http://192.168.56.1:8081/')], contextPath: null, war: '**/*.war'
+            }
+        }
+    }
 }
