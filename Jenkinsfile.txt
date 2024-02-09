@@ -2,38 +2,25 @@ pipeline {
     agent any
 	tools{
 	  maven 'MAVEN'
-	}   
-    environment {
-	APP_NAME = "deploy"
-        TOMCAT_HOME = "C:/Program Files/Apache Software Foundation/Tomcat 9.0"
-        WAR_FILE = "devOpsWeb.war"
-        TOMCAT_MANAGER_USERNAME = "harish"
-        TOMCAT_MANAGER_PASSWORD = "bvbschool@24"
-        TOMCAT_MANAGER_URL = "http://harish:bvbschool@24@localhost:8080/"
+}   
+    parameters {
+        string(name: 'TOMCAT_URL', defaultValue: 'http://192.168.56.1:8081/', description: 'Tomcat URL (e.g., http://localhost:8080)')
+        string(name: 'TOMCAT_USER', defaultValue: 'harish', description: 'Tomcat Username')
+        password(name: 'TOMCAT_PASS', defaultValue: 'bvbschool@24', description: 'Tomcat Password')
+        string(name: 'WAR_FILE', defaultValue: '**/*.war', description: 'Path to the WAR file to deploy')
     }
-    
+
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/harish2428/project1.git'
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                sh 'mvn clean package'
-            }
-        }
-        
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def deployCommand = "curl --upload-file target/$WAR_FILE $TOMCAT_MANAGER_URL/undeploy?path=/$APP_NAME"
-                    sh deployCommand
-                    deployCommand = "curl --upload-file target/$WAR_FILE $TOMCAT_MANAGER_URL/deploy?path=/$APP_NAME&update=true"
-                    sh deployCommand
+                    def auth = "${params.TOMCAT_USER}:${params.TOMCAT_PASS}"
+                    def warFile = "${params.WAR_FILE}"
+                    def tomcatUrl = "${params.TOMCAT_URL}/manager/text/deploy?path=/&update=true"
+
+                    sh "curl -T ${warFile} --user ${auth} ${tomcatUrl}"
                 }
             }
-        }
-    }
+        }
+    }
 }
