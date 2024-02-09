@@ -1,6 +1,8 @@
 pipeline {
     agent any
-    
+    tools{
+      maven 'MAVEN'
+    }
     environment {
         TOMCAT_URL = 'http://192.168.56.1:8081/'
         WAR_FILE = '"C:/project1/SampleWebApp.war"'
