@@ -1,24 +1,19 @@
 pipeline {
     agent any
-	tools{
-	  maven 'MAVEN'
-}   
-    parameters {
-        string(name: 'TOMCAT_URL', defaultValue: 'http://192.168.56.1:8081/', description: 'Tomcat URL (e.g., http://localhost:8080)')
-        string(name: 'TOMCAT_USER', defaultValue: 'harish', description: 'Tomcat Username')
-        password(name: 'TOMCAT_PASS', defaultValue: 'bvbschool@24', description: 'Tomcat Password')
-        string(name: 'WAR_FILE', defaultValue: '**/*.war', description: 'Path to the WAR file to deploy')
+    
+    environment {
+        TOMCAT_URL = 'http://192.168.56.1:8081/'
+        WAR_FILE = '"C:/project1/SampleWebApp.war"'
+        TOMCAT_USER = credentials('harish')
+        TOMCAT_PASS = credentials('bvbschool@24')
     }
 
     stages {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def auth = "${params.TOMCAT_USER}:${params.TOMCAT_PASS}"
-                    def warFile = "${params.WAR_FILE}"
-                    def tomcatUrl = "${params.TOMCAT_URL}/manager/text/deploy?path=/&update=true"
-
-                    sh "curl -T ${warFile} --user ${auth} ${tomcatUrl}"
+                    def tomcat = Tomcat.tomcat(url: TOMCAT_URL, credentialsId: TOMCAT_USER)
+                    tomcat.deploy contextPath: '/', war: WAR_FILE
                 }
             }
         }
