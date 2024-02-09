@@ -1,23 +1,38 @@
-pipeline{
+pipeline {
     agent any
-    tools{
-	maven 'MAVEN'
-	}
-    stages{
-        stage ('Build'){
-            steps{
-                sh 'mvn clean package'
-            }
-            post{
-                success{
-                     echo "Archiving the Atrifacts"
-                     archiveArtifacts artifacts: '**/target/*.war'
-                }
+	tools{
+	  maven 'MAVEN'
+	}   
+    environment {
+	APP_NAME = "deploy"
+        TOMCAT_HOME = "C:\Program Files\Apache Software Foundation\Tomcat 9.0"
+        WAR_FILE = "devOpsWeb.war"
+        TOMCAT_MANAGER_USERNAME = "harish"
+        TOMCAT_MANAGER_PASSWORD = "bvbschool@24"
+        TOMCAT_MANAGER_URL = "http://harish:bvbschool@24@localhost:8080/"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your/repository.git'
             }
         }
-        stage ('Deploy to tomcat server'){
-            steps{
-              deploy adapters: [tomcat9(credentialsId: '9c79e835-1725-4469-a87f-30ad06cdbffd', path: '', url: 'http://192.168.56.1:8081/')], contextPath: null, war: '**/*.war'
+        
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    def deployCommand = "curl --upload-file target/$WAR_FILE $TOMCAT_MANAGER_URL/undeploy?path=/$APP_NAME"
+                    sh deployCommand
+                    deployCommand = "curl --upload-file target/$WAR_FILE $TOMCAT_MANAGER_URL/deploy?path=/$APP_NAME&update=true"
+                    sh deployCommand
+                }
             }
         }
     }
